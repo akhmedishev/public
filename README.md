@@ -1,2 +1,2 @@
-# public
-Public repo
+# demo-kafka
+Demo kafka consumer and producer in Python.
