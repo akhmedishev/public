@@ -1,9 +1,9 @@
--- Заполнение ПБЕ в проводках во всех организациях с 01.01.2023.
--- ПБЕ подбирается по части значения СД 'Структура расходов' или 'Структура доходов'.
--- Из значения СД исключаются первые три символа. оставшаяся часть, начиная с 4 символа
--- должна равняться первым 17 символам номера счёта дебет проводки.
+-- Р—Р°РїРѕР»РЅРµРЅРёРµ РџР‘Р• РІ РїСЂРѕРІРѕРґРєР°С… РІРѕ РІСЃРµС… РѕСЂРіР°РЅРёР·Р°С†РёСЏС… СЃ 01.01.2023.
+-- РџР‘Р• РїРѕРґР±РёСЂР°РµС‚СЃСЏ РїРѕ С‡Р°СЃС‚Рё Р·РЅР°С‡РµРЅРёСЏ РЎР” 'РЎС‚СЂСѓРєС‚СѓСЂР° СЂР°СЃС…РѕРґРѕРІ' РёР»Рё 'РЎС‚СЂСѓРєС‚СѓСЂР° РґРѕС…РѕРґРѕРІ'.
+-- РР· Р·РЅР°С‡РµРЅРёСЏ РЎР” РёСЃРєР»СЋС‡Р°СЋС‚СЃСЏ РїРµСЂРІС‹Рµ С‚СЂРё СЃРёРјРІРѕР»Р°. РѕСЃС‚Р°РІС€Р°СЏСЃСЏ С‡Р°СЃС‚СЊ, РЅР°С‡РёРЅР°СЏ СЃ 4 СЃРёРјРІРѕР»Р°
+-- РґРѕР»Р¶РЅР° СЂР°РІРЅСЏС‚СЊСЃСЏ РїРµСЂРІС‹Рј 17 СЃРёРјРІРѕР»Р°Рј РЅРѕРјРµСЂР° СЃС‡С‘С‚Р° РґРµР±РµС‚ РїСЂРѕРІРѕРґРєРё.
 
--- Ахмедишев Р.
+-- РђС…РјРµРґРёС€РµРІ Р .
 
 declare
 
@@ -88,18 +88,18 @@ declare
         where SP.COMPANY = nCOMPANY
           and DB.ACC_BALANCE = 1
           and SP.OPERATION_DATE >= dOPER_DATE_FROM
-          and UDO_F_OPERSPEC_IN_ECPDATA(SP.RN) = 0  -- 0="Нет", 2="Ошибка"
-          and SP.BALUNIT_DEBIT is null  -- предотвращает повторную обработку
+          and UDO_F_OPERSPEC_IN_ECPDATA(SP.RN) = 0  -- 0="РќРµС‚", 2="РћС€РёР±РєР°"
+          and SP.BALUNIT_DEBIT is null  -- РїСЂРµРґРѕС‚РІСЂР°С‰Р°РµС‚ РїРѕРІС‚РѕСЂРЅСѓСЋ РѕР±СЂР°Р±РѕС‚РєСѓ
     )
     loop
       --UDO_P_LOG(nCOMPANY, '');
       nCNT := nCNT + 1;
-      nBALUNIT_FOUND := UDO_GET_MIN_PBE_BY_SUBSTR_PROP(rOPRSPECS.COMPANY, 'Структура расходов', substr(rOPRSPECS.sACC_DEBIT, 1, 17));
+      nBALUNIT_FOUND := UDO_GET_MIN_PBE_BY_SUBSTR_PROP(rOPRSPECS.COMPANY, 'РЎС‚СЂСѓРєС‚СѓСЂР° СЂР°СЃС…РѕРґРѕРІ', substr(rOPRSPECS.sACC_DEBIT, 1, 17));
       if nBALUNIT_FOUND is null then
-        nBALUNIT_FOUND := UDO_GET_MIN_PBE_BY_SUBSTR_PROP(rOPRSPECS.COMPANY, 'Структура доходов', substr(rOPRSPECS.sACC_DEBIT, 1, 17));
+        nBALUNIT_FOUND := UDO_GET_MIN_PBE_BY_SUBSTR_PROP(rOPRSPECS.COMPANY, 'РЎС‚СЂСѓРєС‚СѓСЂР° РґРѕС…РѕРґРѕРІ', substr(rOPRSPECS.sACC_DEBIT, 1, 17));
       end if;
       if nBALUNIT_FOUND is null then
-        UDO_P_LOG(nCOMPANY, 'ХО %s: Не найдено ПБЕ со значением свойства Структура расходов или Структура доходов: ???%s',
+        UDO_P_LOG(nCOMPANY, 'РҐРћ %s: РќРµ РЅР°Р№РґРµРЅРѕ РџР‘Р• СЃРѕ Р·РЅР°С‡РµРЅРёРµРј СЃРІРѕР№СЃС‚РІР° РЎС‚СЂСѓРєС‚СѓСЂР° СЂР°СЃС…РѕРґРѕРІ РёР»Рё РЎС‚СЂСѓРєС‚СѓСЂР° РґРѕС…РѕРґРѕРІ: ???%s',
                  UDO_F_ECONOPRS_DOC(rOPRSPECS.PRN), substr(rOPRSPECS.sACC_DEBIT, 1, 17));
         nCNT_NF := nCNT_NF + 1;
       else
@@ -110,9 +110,9 @@ declare
         nCNT_UPD := nCNT_UPD + sql%rowcount;
       end if;
     end loop;
-    UDO_P_LOG(nCOMPANY, 'Количество отобранных проводок с %s: %s.', d2s(dOPER_DATE_FROM), nCNT);
-    UDO_P_LOG(nCOMPANY, 'Сколько раз не удалось найти ПБЕ: %s.', nCNT_NF);
-    UDO_P_LOG(nCOMPANY, 'Сколько раз ПБЕ записано в проводку: %s.', nCNT_UPD);
+    UDO_P_LOG(nCOMPANY, 'РљРѕР»РёС‡РµСЃС‚РІРѕ РѕС‚РѕР±СЂР°РЅРЅС‹С… РїСЂРѕРІРѕРґРѕРє СЃ %s: %s.', d2s(dOPER_DATE_FROM), nCNT);
+    UDO_P_LOG(nCOMPANY, 'РЎРєРѕР»СЊРєРѕ СЂР°Р· РЅРµ СѓРґР°Р»РѕСЃСЊ РЅР°Р№С‚Рё РџР‘Р•: %s.', nCNT_NF);
+    UDO_P_LOG(nCOMPANY, 'РЎРєРѕР»СЊРєРѕ СЂР°Р· РџР‘Р• Р·Р°РїРёСЃР°РЅРѕ РІ РїСЂРѕРІРѕРґРєСѓ: %s.', nCNT_UPD);
 
     PKG_CHECK.ON_('OPRSPECS_CHECK_LINKS');
     commit;
