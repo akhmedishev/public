@@ -19,7 +19,7 @@ import undetected_chromedriver
 from rafilesysutils import FoldersProvider, save_to_file
 from radictutils import get_free_key, set_on_free_key
 from raconvutils import float_safe
-from rascrapetask import *  # if you need a complete solution, you are welcome to contact me directly
+from rascrapetask import *  # if you need the complete solution, please contact me directly https://t.me/oradim
 from selenium.webdriver.remote.remote_connection import LOGGER as selenium_logger
 from urllib3.connectionpool import log as urllib_logger
 
@@ -132,7 +132,7 @@ def navigate_to_url(driver, url, retry_count=15, sleep_seconds_min=150, sleep_se
                 div_out_of_stock = driver.find_element(By.XPATH, '//div[@data-qa="out-of-stock-lable"]')
             except NoSuchElementException:
                 div_out_of_stock = None
-            if div_out_of_stock is None:
+            if div_out_of_stock is None:  # на странице нет признака "Товар закончился"
                 return
             else:
                 data_qa_attr = div_out_of_stock.get_attribute('data-qa')
@@ -189,7 +189,7 @@ def scrape_data_from_product_pages(driver, collected_items):
                 for k_if_discount in ('price_new', 'unit_new', 'price_old', 'unit_old'):
                     product2[k_if_discount] = ''
 
-                showcase_price_view = None
+                showcase_price_view = None  # обычная цена
                 try:
                     showcase_price_view = driver.find_element(By.XPATH, '//showcase-price-view[@slot="primary-price"]')
                 except NoSuchElementException:
@@ -208,12 +208,15 @@ def scrape_data_from_product_pages(driver, collected_items):
 
                     div_prices_mf_pdp = showcase_price_view.find_element(By.XPATH, '..')
 
-                else:
+                else:  # если нет обычной цены -- то искать цену со скидкой
                     div_oph_price = None
-                    try:
-                        div_oph_price = driver.find_element(By.XPATH, '//div[@data-qa="oph-price"]')
-                    except NoSuchElementException:
-                        div_oph_price = None
+                    #ra, 2023-03-11: решил исключить ситуации, когда нет ни обычной цены, ни цены со скидкой
+                    # если нет никакой цены -- то что-то "не так" -- и пусть find_element выбросит исключение,
+                    # (и данная страница будет запрошена повторно на следующей итерации внешнего цикла while) 
+                    #try:
+                    div_oph_price = driver.find_element(By.XPATH, '//div[@data-qa="oph-price"]')
+                    #except NoSuchElementException:
+                    #    div_oph_price = None
 
                     if div_oph_price is not None:
                         product2['price_new'] = div_oph_price.find_element(By.XPATH, './following-sibling::div[1]/span[1]').text
